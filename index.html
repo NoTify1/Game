@@ -1,20 +1,21 @@
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Neon Reflex</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Second Hero</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="game.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>NEON REFLEX</h1>
-    <p id="instructions">Tap the box as fast as you can!</p>
-    <div id="gameArea"></div>
-    <p>Score: <span id="score">0</span></p>
-    <button id="startBtn">Start Game</button>
-  </div>
-
-  <script src="script.js"></script>
+    <h1>One Second Hero</h1>
+    <div id="scoreboard">
+        <h2>Leaderboard</h2>
+        <ul id="leaderboard"></ul>
+    </div>
+    <button onclick="startRound()">Start Round</button>
+    <button onclick="checkAnswer()">Check Answer</button>
+    <div id="gameStatus"></div>
 </body>
 </html>
