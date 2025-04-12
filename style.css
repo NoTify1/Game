@@ -1,64 +1,48 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+// server/server.js
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
 
-body {
-  margin: 0;
-  padding: 0;
-  font-family: 'Orbitron', sans-serif;
-  background-color: #0d0d0d;
-  color: #39ff14;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server);
 
-.container {
-  text-align: center;
-}
+let playerScores = {};
 
-#gameArea {
-  position: relative;
-  width: 100vw;
-  height: 60vh;
-  border: 2px dashed #39ff14;
-  margin: 20px auto;
-  overflow: hidden;
-}
+app.use(express.static('public')); // Serve static files (frontend)
 
-.box {
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  background-color: #39ff14;
-  box-shadow: 0 0 20px #39ff14;
-  border-radius: 10px;
-  cursor: pointer;
-  animation: pop 0.2s ease-in-out;
-}
+io.on('connection', (socket) => {
+    console.log('a user connected');
+    playerScores[socket.id] = 0; // Start player score at 0
 
-@keyframes pop {
-  0% {
-    transform: scale(0.5);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
+    socket.on('disconnect', () => {
+        console.log('user disconnected');
+        delete playerScores[socket.id];
+    });
 
-#startBtn {
-  padding: 10px 30px;
-  font-size: 16px;
-  background-color: #39ff14;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: 0 0 15px #39ff14;
-  color: #0d0d0d;
-  transition: 0.3s;
-}
+    // Multiplayer round start
+    socket.on('startRound', () => {
+        io.emit('roundStarted', 'New round started! Players ready!');
+    });
 
-#startBtn:hover {
-  transform: scale(1.1);
-}
+    // Player failed in mini-game
+    socket.on('playerFailed', (playerId) => {
+        playerScores[playerId] += 1; // Increase score for the player who succeeded
+        io.emit('updateScore', playerScores); // Update all players' scores
+        socket.emit('gameOver', 'You lost! Try again.');
+    });
+
+    // Send updated scores after round
+    socket.on('roundEnd', () => {
+        io.emit('updateScore', playerScores);
+    });
+
+    // Leaderboard update
+    socket.on('getLeaderboard', () => {
+        socket.emit('leaderboard', playerScores);
+    });
+});
+
+server.listen(3000, () => {
+    console.log('listening on *:3000');
+});
